@@ -1,0 +1,49 @@
+# To add with: Utility/init
+# SOURCE_DATA=...
+# SOURCE_REFERENCE=...
+
+# Prepare variables
+DIR_DATA=Data
+DIR_RESULTS=.
+DIR_INTERMEDIATE=Intermediate
+DIR_REFERENCE=Reference
+DIR_META=Meta 
+
+FILE_REFERENCE=$(DIR_REFERENCE)/$(basename $(notdir $(SOURCE_REFERENCE))).fasta
+FILES_REFERENCE_INDEXED=$(FILE_REFERENCE).amb
+FILES_REFERENCE_INDEXED+= $(FILE_REFERENCE).ann
+FILES_REFERENCE_INDEXED+= $(FILE_REFERENCE).bwt
+FILES_REFERENCE_INDEXED+= $(FILE_REFERENCE).pac
+FILES_REFERENCE_INDEXED+= $(FILE_REFERENCE).sa
+
+TARGET=$(DIR_RESULTS)/$(basename $(notdir $(SOURCE_DATA))).bam
+FILE_DATA=$(DIR_DATA)/$(notdir $(SOURCE_DATA))
+FILE_INTERMEDIATE=$(DIR_INTERMEDIATE)/$(basename $(notdir $(SOURCE_DATA))).sai
+
+BWA=$(shell which bwa)
+SAMTOOLS=$(shell which samtools)
+
+# Create directory structure
+$(shell mkdir -p $(DIR_DATA))
+$(shell mkdir -p $(DIR_RESULTS))
+$(shell mkdir -p $(DIR_INTERMEDIATE))
+$(shell mkdir -p $(DIR_REFERENCE))
+$(shell mkdir -p $(DIR_META))
+
+# Start Analysis
+$(TARGET): $(FILE_INTERMEDIATE) $(SAMTOOLS) 
+	$(BWA) samse $(FILE_REFERENCE) $(FILE_INTERMEDIATE) $(FILE_DATA) | $(SAMTOOLS) view -bSh - > $@
+	$(SAMTOOLS) 3>&1 1>&2- 2>&3- | head -n4 > Meta/samtools.txt
+
+$(FILE_INTERMEDIATE): $(FILE_DATA) $(FILES_REFERENCE_INDEXED) $(FILE_REFERENCE)
+	$(BWA) aln -l 10 -d 0 -i 0 $(FILE_REFERENCE) $(FILE_DATA) > $@
+
+$(FILES_REFERENCE_INDEXED): $(FILE_REFERENCE)
+	$(BWA) index $<
+	$(BWA) 3>&1 1>&2- 2>&3- | head -n5 > Meta/bwa.txt
+
+$(FILE_DATA): $(SOURCE_DATA)
+	ln -s ../$(SOURCE_DATA) $@
+
+$(FILE_REFERENCE): $(SOURCE_REFERENCE)
+	ln -s ../$(SOURCE_REFERENCE) $@

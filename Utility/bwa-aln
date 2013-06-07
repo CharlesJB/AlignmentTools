@@ -1,0 +1,45 @@
+#!/bin/bash
+
+Usage(){
+	echo ""
+	echo "This script will produce a Makefile for an alignment using bwa aln"
+	echo ""
+	echo "Usage:"
+	echo "    miRNA-Tools init bwa-aln <file.fastq> <reference.fasta>"
+	echo ""
+}
+
+# Parse Arguments
+dir_scripts=$1
+file_data=$2
+file_reference=$3
+
+# Validate usage
+if [ "$#" != 3 ]
+then
+	Usage
+	exit
+elif [ ! -d "$dir_scripts" ]
+then
+	echo ""
+	echo "Alignment-Tools init bwa-aln: Cannot find script directory: $dir_scripts"
+	Usage
+	exit
+elif [ ! -e "$file_data" ]
+then
+	echo ""
+	echo "Alignment-Tools init bwa-aln: Cannot find data file: $file_data"
+	Usage
+	exit
+elif [ ! -e "$file_reference" ]
+then
+	echo ""
+	echo "Alignment-Tools init bwa-aln: Cannot find reference file: $file_reference"
+	Usage
+	exit
+fi
+
+# Create the Makefile
+echo "SOURCE_DATA=$file_data" > Makefile
+echo "SOURCE_REFERENCE=$file_reference" >> Makefile
+tail -n+4 $dir_scripts/Template/Makefile_bwa-aln_Template >> Makefile

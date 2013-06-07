@@ -1,0 +1,32 @@
+#!/bin/bash
+
+Usage(){
+	echo ""
+	echo "This script will prepare the correct Makefile for the alignment analysis"
+	echo ""
+	echo "Usage:"
+	echo "    miRNA-Tools init [command]"
+	echo ""
+	echo "Available commands:"
+	echo "    bwa-aln" 
+	echo "    usage"
+	echo ""
+}
+# Parse Arguments
+dir_scripts=$1
+
+# Validate arguments
+if [ ! -d "$dir_scripts" ]
+then
+	echo ""
+	echo "Alignment-Tools init: Cannot find script directory: $dir_scripts"
+	Usage
+	exit
+elif [ "$2" == "bwa-aln" ]
+then
+	# See Gordon Davisson comment: http://stackoverflow.com/questions/9057387/process-all-arguments-but-first
+	$dir_scripts/Utility/bwa-aln $dir_scripts ${@:3}
+else
+	Usage
+	exit
+fi
