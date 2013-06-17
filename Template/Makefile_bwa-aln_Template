@@ -1,13 +1,15 @@
 # To add with: Utility/init
 # SOURCE_DATA=...
 # SOURCE_REFERENCE=...
+# OPTIONS=...
 
 # Prepare variables
 DIR_DATA=Data
 DIR_RESULTS=.
 DIR_INTERMEDIATE=Intermediate
 DIR_REFERENCE=Reference
-DIR_META=Meta 
+DIR_META=Meta
+DIR_STATISTICS=Statistics
 
 FILE_REFERENCE=$(DIR_REFERENCE)/$(basename $(notdir $(SOURCE_REFERENCE))).fasta
 FILES_REFERENCE_INDEXED=$(FILE_REFERENCE).amb
@@ -16,9 +18,10 @@ FILES_REFERENCE_INDEXED+= $(FILE_REFERENCE).bwt
 FILES_REFERENCE_INDEXED+= $(FILE_REFERENCE).pac
 FILES_REFERENCE_INDEXED+= $(FILE_REFERENCE).sa
 
-TARGET=$(DIR_RESULTS)/$(basename $(notdir $(SOURCE_DATA))).bam
 FILE_DATA=$(DIR_DATA)/$(notdir $(SOURCE_DATA))
 FILE_INTERMEDIATE=$(DIR_INTERMEDIATE)/$(basename $(notdir $(SOURCE_DATA))).sai
+FILE_STATISTICS=$(DIR_STATISTICS)/alignment-stats.txt
+TARGET=$(DIR_RESULTS)/$(basename $(notdir $(SOURCE_DATA))).bam
 
 BWA=$(shell which bwa)
 SAMTOOLS=$(shell which samtools)
@@ -29,18 +32,29 @@ $(shell mkdir -p $(DIR_RESULTS))
 $(shell mkdir -p $(DIR_INTERMEDIATE))
 $(shell mkdir -p $(DIR_REFERENCE))
 $(shell mkdir -p $(DIR_META))
+$(shell mkdir -p $(DIR_STATISTICS))
 
 # Start Analysis
+$(FILE_STATISTICS): $(TARGET)
+	echo -ne "Total reads\t" > $@
+	$(SAMTOOLS) view $< | wc -l >> $@
+	echo -ne "Unmapped\t" >> $@
+	$(SAMTOOLS) view -f4 $< | wc -l >> $@
+	echo -ne "Mapped\t" >> $@
+	$(SAMTOOLS) view -F4 $< | wc -l >> $@
+	echo -ne "Perfect Match\t" >> $@
+	$(SAMTOOLS) view -F4 $< | awk '$$6 ~ /^..M$$/' | grep -o "NM:i:0" | wc -l >> $@
+
 $(TARGET): $(FILE_INTERMEDIATE) $(SAMTOOLS) 
 	$(BWA) samse $(FILE_REFERENCE) $(FILE_INTERMEDIATE) $(FILE_DATA) | $(SAMTOOLS) view -bSh - > $@
-	$(SAMTOOLS) 3>&1 1>&2- 2>&3- | head -n4 > Meta/samtools.txt
+	$(SAMTOOLS) 3>&1 1>&2- 2>&3- | head -n4 > $(DIR_META)/samtools.txt
 
 $(FILE_INTERMEDIATE): $(FILE_DATA) $(FILES_REFERENCE_INDEXED) $(FILE_REFERENCE)
-	$(BWA) aln -l 10 -d 0 -i 0 $(FILE_REFERENCE) $(FILE_DATA) > $@
+	$(BWA) aln $(FILE_REFERENCE) $(FILE_DATA) $$(echo "$(OPTIONS)" | sed 's/;/ /g') > $@
 
 $(FILES_REFERENCE_INDEXED): $(FILE_REFERENCE)
 	$(BWA) index $<
-	$(BWA) 3>&1 1>&2- 2>&3- | head -n5 > Meta/bwa.txt
+	$(BWA) 3>&1 1>&2- 2>&3- | head -n5 > $(DIR_META)/bwa.txt
 
 $(FILE_DATA): $(SOURCE_DATA)
 	ln -s ../$(SOURCE_DATA) $@
