@@ -5,7 +5,9 @@ Usage(){
 	echo "This script will produce a Makefile for an alignment using bwa aln"
 	echo ""
 	echo "Usage:"
-	echo "    miRNA-Tools init bwa-aln <file.fastq> <reference.fasta>"
+	echo "    miRNA-Tools init bwa-aln <file.fastq> <reference.fasta> <options>"
+	echo ""
+	echo "	Note: <options> should be separated by semicolons (\";\") and contains no space."
 	echo ""
 }
 
@@ -13,9 +15,10 @@ Usage(){
 dir_scripts=$1
 file_data=$2
 file_reference=$3
+options=$4
 
 # Validate usage
-if [ "$#" != 3 ]
+if [ "$#" != 4 ]
 then
 	Usage
 	exit
@@ -42,4 +45,5 @@ fi
 # Create the Makefile
 echo "SOURCE_DATA=$file_data" > Makefile
 echo "SOURCE_REFERENCE=$file_reference" >> Makefile
-tail -n+4 $dir_scripts/Template/Makefile_bwa-aln_Template >> Makefile
+echo "OPTIONS=$options" >> Makefile
+tail -n+5 $dir_scripts/Template/Makefile_bwa-aln_Template >> Makefile
