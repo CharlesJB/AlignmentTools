@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=1.0
+VERSION=1.1
 
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
 dir_scripts="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

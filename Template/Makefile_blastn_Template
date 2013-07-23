@@ -1,0 +1,44 @@
+# To add with: Utility/init
+# SOURCE_DATA=...
+# SOURCE_REFERENCE=...
+# OPTIONS=...
+
+# Prepare variables
+DIR_DATA=Data
+DIR_RESULTS=.
+DIR_REFERENCE=Reference
+DIR_META=Meta
+DIR_STATISTICS=Statistics
+
+FILE_REFERENCE=$(DIR_REFERENCE)/$(basename $(notdir $(SOURCE_REFERENCE))).fasta
+FILES_REFERENCE_INDEXED=$(basename $(FILE_REFERENCE)).nhr
+FILES_REFERENCE_INDEXED+=$(basename $(FILE_REFERENCE)).nin
+FILES_REFERENCE_INDEXED+=$(basename $(FILE_REFERENCE)).nsq
+
+FILE_DATA=$(DIR_DATA)/$(notdir $(SOURCE_DATA))
+TARGET=$(DIR_RESULTS)/$(basename $(notdir $(SOURCE_DATA))).out
+
+BLASTDB=$(shell which makeblastdb)
+BLASTN=$(shell which blastn)
+
+# Create directory structure
+$(shell mkdir -p $(DIR_DATA))
+$(shell mkdir -p $(DIR_RESULTS))
+$(shell mkdir -p $(DIR_REFERENCE))
+$(shell mkdir -p $(DIR_META))
+#$(shell mkdir -p $(DIR_STATISTICS))
+
+# Start Analysis
+$(TARGET): $(FILE_REFERENCE) $(FILE_DATA) $(FILES_REFERENCE_INDEXED)
+	$(BLASTN) -task blastn-short -db $(basename $(FILE_REFERENCE)) -query $(FILE_DATA) -out $@ $$(echo "$(OPTIONS)" | sed 's/;/ /g')
+	$(BLASTN) -version > $(DIR_META)/blastn.txt
+
+$(FILES_REFERENCE_INDEXED): $(FILE_REFERENCE)
+	$(BLASTDB) -in $< -dbtype 'nucl' -out $(basename $<)
+	$(BLASTDB) -version > $(DIR_META)/makeblastdb.txt
+
+$(FILE_DATA): $(SOURCE_DATA)
+	ln -s ../$(SOURCE_DATA) $@
+
+$(FILE_REFERENCE): $(SOURCE_REFERENCE)
+	ln -s ../$(SOURCE_REFERENCE) $@

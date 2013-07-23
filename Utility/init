@@ -9,6 +9,7 @@ Usage(){
 	echo ""
 	echo "Available commands:"
 	echo "    bwa-aln" 
+	echo "    blastn"
 	echo "    usage"
 	echo ""
 }
@@ -24,9 +25,10 @@ then
 	exit
 elif [ "$2" == "bwa-aln" ]
 then
-	# See Gordon Davisson comment: http://stackoverflow.com/questions/9057387/process-all-arguments-but-first
-#	echo "init: "${@:3}
 	$dir_scripts/Utility/bwa-aln $dir_scripts ${@:3}
+elif [ "$2" == "blastn" ]
+then
+	$dir_scripts/Utility/blastn $dir_scripts ${@:3}
 else
 	Usage
 	exit
