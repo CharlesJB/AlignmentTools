@@ -1,0 +1,11 @@
+This is where alignment tools will be wrapped.
+
+To start reading usage:
+<path-to-git-repository>/Alignment-Tools
+
+To start an analysis with bwa aln:
+<path-to-git-repository>/Alignment-Tools init bwa-aln <fastq-file> <relative-path-to-reference-genome.fasta> <options>
+make
+
+To get extra information about a command, use usage:
+<path-to-git-repository>/Alignment-Tools init bwa-aln usage
